@@ -4,36 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Postings</title>
-    <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a; /* Deeper dark background (slate-900) */
-            color: #e2e8f0; /* Light text (slate-200) */
+            background-color: #0f172a; 
+            color: #e2e8f0; 
             line-height: 1.6;
         }
         .job-card {
-            background-color: #1e293b; /* Slightly lighter dark background for cards (slate-800) */
-            border: 1px solid #334155; /* Darker border (slate-700) */
-            transition: all 0.3s ease-in-out; /* Smooth transition for hover effects */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            background-color: #1e293b; 
+            border: 1px solid #334155; 
+            transition: all 0.3s ease-in-out; 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
         }
         .job-card:hover {
-            transform: translateY(-5px) scale(1.02); /* Lift and slightly enlarge on hover */
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* More prominent shadow on hover */
+            transform: translateY(-5px) scale(1.02); 
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); 
         }
         .category-tag {
-            background-color: #6366f1; /* Indigo-500 for categories */
+            background-color: #6366f1; 
             color: white;
-            padding: 0.25rem 0.75rem; /* Slightly more padding */
-            border-radius: 9999px; /* Fully rounded */
-            font-weight: 500; /* Medium font weight */
-            text-transform: capitalize; /* Capitalize the first letter */
+            padding: 0.25rem 0.75rem; 
+            border-radius: 9999px; 
+            font-weight: 500; 
+            text-transform: capitalize; 
         }
         .location-tag {
-            background-color: #f97316; /* Orange-500 for locations */
+            background-color: #f97316; 
             color: white;
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
@@ -41,7 +40,7 @@
             text-transform: capitalize;
         }
         .job-type-tag {
-            background-color: #a855f7; /* Purple-500 for job types */
+            background-color: #a855f7; 
             color: white;
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
@@ -49,22 +48,21 @@
             text-transform: capitalize;
         }
         .date-text {
-            color: #94a3b8; /* Slate-400 for dates */
-            font-size: 0.875rem; /* Smaller font size */
+            color: #94a3b8; 
+            font-size: 0.875rem; 
         }
         .view-details-link {
             display: inline-flex;
             align-items: center;
             gap: 0.25rem;
-            color: #3b82f6; /* Blue-500 */
-            font-weight: 600; /* Semi-bold */
+            color: #3b82f6; 
+            font-weight: 600; 
             transition: color 0.2s ease-in-out;
         }
         .view-details-link:hover {
-            color: #60a5fa; /* Blue-400 on hover */
+            color: #60a5fa; 
         }
 
-        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -74,12 +72,12 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.8);
-            animation: fadeIn 0.3s forwards; /* Use forwards to keep the final state */
-            backdrop-filter: blur(5px); /* Blurred background */
+            animation: fadeIn 0.3s forwards;
+            backdrop-filter: blur(5px); 
         }
         
         .modal-content {
-            background-color: #1e293b; /* Same as job card */
+            background-color: #1e293b; 
             margin: 5% auto;
             padding: 0;
             border: 1px solid #334155;
@@ -89,14 +87,14 @@
             max-height: 90vh;
             overflow-y: auto;
             position: relative;
-            animation: slideIn 0.3s forwards; /* Use forwards to keep the final state */
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3); /* More prominent shadow for modal */
+            animation: slideIn 0.3s forwards;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3); 
         }
         
         .modal-header {
             padding: 24px;
             border-bottom: 1px solid #334155;
-            position: relative; /* For positioning the close button */
+            position: relative;
         }
         
         .modal-body {
@@ -104,7 +102,7 @@
         }
         
         .close {
-            color: #94a3b8; /* Slate-400 */
+            color: #94a3b8;
             position: absolute;
             top: 16px;
             right: 20px;
@@ -128,45 +126,76 @@
             to { transform: translateY(0) scale(1); opacity: 1; }
         }
         
-        /* Tab styles */
-        .tabs {
+        .main-tabs {
             display: flex;
+            flex-wrap: wrap; 
             justify-content: center;
             margin-bottom: 2rem;
             border-bottom: 1px solid #334155;
         }
-        .tab-button {
+        .main-tabs .tab-button {
             padding: 0.75rem 1.5rem;
             font-size: 1rem;
             font-weight: 600;
-            color: #94a3b8; /* Slate-400 */
+            color: #94a3b8; 
             cursor: pointer;
             border-bottom: 3px solid transparent;
             transition: all 0.2s ease-in-out;
+            white-space: nowrap; 
         }
-        .tab-button:hover {
-            color: #e2e8f0; /* Light text on hover */
-            border-color: #6366f1; /* Indigo-500 on hover */
+        .main-tabs .tab-button:hover {
+            color: #e2e8f0; 
+            border-color: #6366f1; 
         }
-        .tab-button.active {
-            color: #e2e8f0; /* Light text for active tab */
-            border-color: #3b82f6; /* Blue-500 for active tab */
+        .main-tabs .tab-button.active {
+            color: #e2e8f0; 
+            border-color: #3b82f6; 
         }
-        .tab-content {
+
+        .category-content {
             display: none;
         }
-        .tab-content.active {
+        .category-content.active {
+            display: block;
+        }
+        
+        .sub-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #334155;
+        }
+        .sub-tab-button {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #94a3b8;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+        .sub-tab-button:hover {
+            color: #e2e8f0;
+            border-color: #6366f1;
+        }
+        .sub-tab-button.active {
+            color: #e2e8f0;
+            border-color: #3b82f6;
+        }
+        .sub-tab-content {
+            display: none;
+        }
+        .sub-tab-content.active {
             display: block;
         }
 
-        /* Table styles */
         .job-table {
             width: 100%;
-            border-collapse: separate; /* Use separate to allow border-radius on cells */
-            border-spacing: 0; /* Remove default spacing */
+            border-collapse: separate; 
+            border-spacing: 0; 
             background-color: #1e293b;
             border-radius: 8px;
-            overflow: hidden; /* Ensures rounded corners are visible */
+            overflow: hidden; 
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .job-table th, .job-table td {
@@ -175,33 +204,22 @@
             border-bottom: 1px solid #334155;
         }
         .job-table th {
-            background-color: #334155; /* Darker header background */
+            background-color: #334155; 
             color: #cbd5e0;
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.875rem;
             position: sticky;
-            top: 0; /* Make header sticky */
+            top: 0; 
             z-index: 10;
         }
         .job-table tbody tr:last-child td {
             border-bottom: none;
         }
         .job-table tbody tr:hover {
-            background-color: #2d3748; /* Darker hover for rows */
-        }
-        .job-table .group-header {
-            background-color: #4a5568; /* Even darker for group headers */
-            color: #e2e8f0;
-            font-weight: 700;
-            text-align: center;
-            padding: 0.75rem 1rem;
-            position: sticky;
-            top: 48px; /* Position below sticky table header */
-            z-index: 9;
+            background-color: #2d3748; 
         }
 
-        /* Responsive styles */
         @media (max-width: 768px) {
             .modal-content {
                 width: 95%;
@@ -212,13 +230,13 @@
                 padding: 16px;
             }
             .job-card {
-                padding: 1.25rem; /* Adjust padding for smaller screens */
+                padding: 1.25rem; 
             }
             .job-table, .job-table tbody, .job-table tr, .job-table td, .job-table th {
-                display: block; /* Stack elements for mobile */
+                display: block; 
             }
             .job-table thead {
-                display: none; /* Hide table header on small screens */
+                display: none; 
             }
             .job-table tr {
                 margin-bottom: 1rem;
@@ -230,10 +248,10 @@
                 border-bottom: 1px solid #334155;
                 text-align: right;
                 position: relative;
-                padding-left: 50%; /* Space for pseudo-element label */
+                padding-left: 50%; 
             }
             .job-table td::before {
-                content: attr(data-label); /* Use data-label for mobile headers */
+                content: attr(data-label); 
                 position: absolute;
                 left: 1rem;
                 width: calc(50% - 1rem);
@@ -246,26 +264,30 @@
             .job-table td:last-child {
                 border-bottom: none;
             }
-            .job-table .group-header {
-                font-size: 1rem;
-                top: 0; /* Group header should be at the top on mobile */
-            }
         }
         
         @media (max-width: 480px) {
             body {
-                padding: 1rem !important; /* Adjust overall body padding */
+                padding: 1rem !important; 
             }
             .modal-content {
                 width: 98%;
                 margin: 1% auto;
             }
             .job-card h2 {
-                font-size: 1.125rem; /* Smaller title for mobile */
+                font-size: 1.125rem; 
             }
             .category-tag, .location-tag, .job-type-tag {
-                font-size: 0.625rem; /* Even smaller tags on very small screens */
+                font-size: 0.625rem; 
                 padding: 0.2rem 0.6rem;
+            }
+            .main-tabs .tab-button {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+            .sub-tab-button {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
             }
         }
     </style>
@@ -276,30 +298,16 @@
         <p class="text-base sm:text-lg text-gray-400">Explore exciting job opportunities tailored for you.</p>
     </header>
 
-    <div class="tabs max-w-2xl mx-auto">
-        <button class="tab-button active" data-tab="cardView">Card View</button>
-        <button class="tab-button" data-tab="tableView">Table View</button>
+    <div class="main-tabs max-w-6xl mx-auto mb-8">
     </div>
 
     <main class="max-w-6xl mx-auto">
-        <div id="cardView" class="tab-content active">
-            <div id="jobCardListings" class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                <!-- Job cards will be injected here by JavaScript -->
-            </div>
-        </div>
-
-        <div id="tableView" class="tab-content">
-            <div id="jobTableListings" class="overflow-x-auto rounded-lg">
-                <!-- Job table will be injected here by JavaScript -->
-            </div>
-        </div>
     </main>
 
     <footer class="text-center mt-12 py-4 text-gray-500 text-sm border-t border-slate-700">
         <p>&copy; 2024 Job Board. All rights reserved.</p>
     </footer>
 
-    <!-- Modal -->
     <div id="jobModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -313,9 +321,7 @@
             </div>
         </div>
     </div>
-
     <script>
-        // Placeholder data - PLEASE REPLACE WITH DATA FROM NOTION PAGE
         const jobData = [
             { 
                 title: "Freelancer Tele Associates", 
@@ -323,9 +329,9 @@
                 date: "16/09/2024", 
                 location: "Remote", 
                 type: "Contractual",
-                company: "ABC Corp", // Placeholder
-                experience: "1-2 Years", // Placeholder
-                skills: ["Sales", "Communication", "Telemarketing"], // Placeholder
+                company: "ABC Corp", 
+                experience: "1-2 Years", 
+                skills: ["Sales", "Communication", "Telemarketing"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">We are seeking dynamic Freelancer Tele Associates to join our remote sales team. This contractual position offers flexible working hours and competitive commission-based compensation.</p>
@@ -362,9 +368,9 @@
                 date: "16/09/2024", 
                 location: "Bangalore", 
                 type: "Job",
-                company: "XYZ Ltd", // Placeholder
-                experience: "3-5 Years", // Placeholder
-                skills: ["Risk Management", "Compliance", "Financial Analysis"], // Placeholder
+                company: "XYZ Ltd", 
+                experience: "3-5 Years", 
+                skills: ["Risk Management", "Compliance", "Financial Analysis"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">Join our team as an Analyst - Control Manager in Bangalore. This role involves managing risk controls and ensuring compliance across various business operations.</p>
@@ -402,9 +408,9 @@
                 date: "13/09/2024", 
                 location: "Patna", 
                 type: "Job",
-                company: "Tech University", // Placeholder
-                experience: "5+ Years", // Placeholder
-                skills: ["Lecturing", "Curriculum Development", "Mentoring"], // Placeholder
+                company: "Tech University", 
+                experience: "5+ Years", 
+                skills: ["Lecturing", "Curriculum Development", "Mentoring"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">We are looking for experienced Computer Science professionals to join as Visiting Faculty in our Patna campus. Share your industry expertise with the next generation of technology leaders.</p>
@@ -442,9 +448,9 @@
                 date: "14/09/2024", 
                 location: "Remote", 
                 type: "Job",
-                company: "Global Connect", // Placeholder
-                experience: "2-4 Years", // Placeholder
-                skills: ["Customer Service", "Sales", "CRM"], // Placeholder
+                company: "Global Connect", 
+                experience: "2-4 Years", 
+                skills: ["Customer Service", "Sales", "CRM"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">Join our remote customer service team as a Sales Specialist. Combine excellent customer service with sales expertise to drive revenue growth while ensuring customer satisfaction.</p>
@@ -482,9 +488,9 @@
                 date: "13/09/2024", 
                 location: "Hyderabad", 
                 type: "Job",
-                company: "FinTech Solutions", // Placeholder
-                experience: "5-7 Years", // Placeholder
-                skills: ["Financial Modeling", "Budgeting", "Analysis"], // Placeholder
+                company: "FinTech Solutions", 
+                experience: "5-7 Years", 
+                skills: ["Financial Modeling", "Budgeting", "Analysis"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">We are seeking a Senior Financial Analyst to join our finance team in Hyderabad. Play a key role in financial planning, analysis, and strategic decision-making processes.</p>
@@ -507,7 +513,7 @@
                         <li>CPA or CFA certification preferred</li>
                     </ul>
                     
-                    <h4 class="text-md font-semibold text-white mb-2">What We Offer:</h4>
+                    <h4 class="text-md font-semibold text-white mb-2">Benefits:</h4>
                     <ul class="list-disc list-inside">
                         <li>Competitive salary and bonuses</li>
                         <li>Comprehensive benefits package</li>
@@ -522,9 +528,9 @@
                 date: "14/09/2024", 
                 location: "Chennai", 
                 type: "Job",
-                company: "IT Support Hub", // Placeholder
-                experience: "3-5 Years", // Placeholder
-                skills: ["Troubleshooting", "IT Support", "Networking"], // Placeholder
+                company: "IT Support Hub", 
+                experience: "3-5 Years", 
+                skills: ["Troubleshooting", "IT Support", "Networking"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">Join our IT support team as a Service Desk Tier 2 specialist in Chennai. Provide advanced technical support and resolve complex IT issues for our organization.</p>
@@ -562,9 +568,9 @@
                 date: "11/09/2024", 
                 location: "Mumbai", 
                 type: "Job",
-                company: "Innovate Bank", // Placeholder
-                experience: "8+ Years", // Placeholder
-                skills: ["Strategy", "Business Development", "Market Analysis"], // Placeholder
+                company: "Innovate Bank", 
+                experience: "8+ Years", 
+                skills: ["Strategy", "Business Development", "Market Analysis"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">Lead our Self Employed Proposition sector in Mumbai. Drive strategic initiatives for self-employed customer segments and develop innovative financial solutions.</p>
@@ -602,9 +608,9 @@
                 date: "11/09/2024", 
                 location: "Bangalore", 
                 type: "Job",
-                company: "HR Solutions Inc.", // Placeholder
-                experience: "5-7 Years", // Placeholder
-                skills: ["Recruitment", "Talent Sourcing", "ATS"], // Placeholder
+                company: "HR Solutions Inc.", 
+                experience: "5-7 Years", 
+                skills: ["Recruitment", "Talent Sourcing", "ATS"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">Join our HR team as Assistant Manager/Manager - Talent Acquisition in Bangalore. Lead recruitment efforts and build world-class teams for our growing organization.</p>
@@ -642,9 +648,9 @@
                 date: "12/09/2024", 
                 location: "Hyderabad", 
                 type: "Job",
-                company: "Franchise Growth", // Placeholder
-                experience: "6-9 Years", // Placeholder
-                skills: ["Franchise Sales", "Business Development", "Negotiation"], // Placeholder
+                company: "Franchise Growth", 
+                experience: "6-9 Years", 
+                skills: ["Franchise Sales", "Business Development", "Negotiation"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">Lead our franchise expansion efforts as a Franchise Development Manager in Hyderabad. Drive growth through strategic franchise partnerships and business development.</p>
@@ -682,13 +688,12 @@
                 date: "11/09/2024", 
                 location: "Pune", 
                 type: "Job",
-                company: "SalesForce Pro", // Placeholder
-                experience: "1-3 Years", // Placeholder
-                skills: ["Lead Generation", "Cold Calling", "CRM"], // Placeholder
+                company: "SalesForce Pro", 
+                experience: "1-3 Years", 
+                skills: ["Lead Generation", "Cold Calling", "CRM"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">Join our sales team as a Sales Development Representative in Pune. Generate qualified leads and support our sales pipeline growth through strategic outreach.</p>
-                    
                     <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
                     <ul class="mb-4 list-disc list-inside">
                         <li>Generate qualified leads through outbound activities</li>
@@ -722,9 +727,9 @@
                 date: "11/09/2024", 
                 location: "Remote", 
                 type: "Job",
-                company: "Sports Media Co.", // Placeholder
-                experience: "4-6 Years", // Placeholder
-                skills: ["Social Media Marketing", "Content Creation", "Cricket Knowledge"], // Placeholder
+                company: "Sports Media Co.", 
+                experience: "4-6 Years", 
+                skills: ["Social Media Marketing", "Content Creation", "Cricket Knowledge"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">Lead our cricket-focused social media strategy as a Remote Social Media Manager. Create engaging content and build communities around cricket and sports entertainment.</p>
@@ -762,12 +767,12 @@
                 date: "12/09/2024", 
                 location: "N/A", 
                 type: "Job",
-                company: "Learning Hub", // Placeholder
-                experience: "4-6 Years", // Placeholder
-                skills: ["Training Delivery", "Instructional Design", "LMS Management"], // Placeholder
+                company: "Learning Hub", 
+                experience: "4-6 Years", 
+                skills: ["Training Delivery", "Instructional Design", "LMS Management"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
-                    <p class="mb-4">Join our Learning & Development team as Assistant Manager Training. Design and deliver impactful training programs to enhance employee skills and performance.</p>
+                    <p class="mb-4">Join our Learning &amp; Development team as Assistant Manager Training. Design and deliver impactful training programs to enhance employee skills and performance.</p>
                     
                     <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
                     <ul class="mb-4 list-disc list-inside">
@@ -789,7 +794,7 @@
                     
                     <h4 class="text-md font-semibold text-white mb-2">Benefits:</h4>
                     <ul class="list-disc list-inside">
-                        <li>Management role in L&D</li>
+                        <li>Management role in L&amp;D</li>
                         <li>Opportunity to impact employee development</li>
                         <li>Professional training and certifications</li>
                         <li>Collaborative work environment</li>
@@ -802,9 +807,9 @@
                 date: "12/09/2024", 
                 location: "Bangalore", 
                 type: "Job",
-                company: "Global Recruiters", // Placeholder
-                experience: "8+ Years", // Placeholder
-                skills: ["Recruitment Strategy", "Team Leadership", "Employer Branding"], // Placeholder
+                company: "Global Recruiters", 
+                experience: "8+ Years", 
+                skills: ["Recruitment Strategy", "Team Leadership", "Employer Branding"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">Lead our talent acquisition function as Senior Manager in Bangalore. Build and execute comprehensive recruitment strategies to attract top talent across the organization.</p>
@@ -842,9 +847,9 @@
                 date: "11/09/2024", 
                 location: "Pune", 
                 type: "Job",
-                company: "Creative Recruit", // Placeholder
-                experience: "3-5 Years", // Placeholder
-                skills: ["Recruitment Marketing", "Content Writing", "Candidate Experience"], // Placeholder
+                company: "Creative Recruit", 
+                experience: "3-5 Years", 
+                skills: ["Recruitment Marketing", "Content Writing", "Candidate Experience"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">Join our talent acquisition team as a Specialist in Pune. Focus on recruiting top talent while creating compelling recruitment content and candidate experiences.</p>
@@ -879,12 +884,12 @@
             { 
                 title: "Sr. Data Analyst", 
                 category: "Analysis", 
-                date: "12/09/2024", 
+                date: "12/09/2024",
                 location: "Remote", 
                 type: "Job",
-                company: "Data Insights", // Placeholder
-                experience: "5-8 Years", // Placeholder
-                skills: ["SQL", "Python", "Data Visualization", "Statistical Analysis"], // Placeholder
+                company: "Data Insights", 
+                experience: "5-8 Years", 
+                skills: ["SQL", "Python", "Data Visualization", "Statistical Analysis"], 
                 description: `
                     <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
                     <p class="mb-4">Join our data team as a Senior Data Analyst working remotely. Transform complex data into actionable insights and drive data-driven decision making across the organization.</p>
@@ -926,7 +931,6 @@
             document.getElementById('modalDate').textContent = `Posted: ${job.date}`;
             document.getElementById('modalDescription').innerHTML = job.description;
             
-            // Update modal tags
             const tagsContainer = document.getElementById('modalTags');
             tagsContainer.innerHTML = `
                 <span class="category-tag text-xs font-medium px-2.5 py-0.5 rounded-full">${job.category}</span>
@@ -935,12 +939,12 @@
             `;
             
             modal.style.display = 'block';
-            document.body.style.overflow = 'hidden'; 
+            document.body.style.overflow = 'hidden';
         }
 
         function closeModalFunc() {
             modal.style.display = 'none';
-            document.body.style.overflow = 'auto'; 
+            document.body.style.overflow = 'auto';
         }
 
         closeModal.onclick = closeModalFunc;
@@ -957,48 +961,22 @@
             }
         });
 
-        function renderJobCards() {
-            const jobListingsContainer = document.getElementById('jobCardListings');
-            jobListingsContainer.innerHTML = ''; 
-
-            jobData.forEach(job => {
-                const jobCard = document.createElement('div');
-                jobCard.className = 'job-card p-4 sm:p-6 rounded-lg shadow-lg flex flex-col justify-between cursor-pointer h-full';
-
-                jobCard.innerHTML = `
-                    <div>
-                        <h2 class="text-lg sm:text-xl font-semibold text-white mb-2">${job.title}</h2>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="category-tag text-xs font-medium">${job.category}</span>
-                            ${job.location !== "N/A" ? `<span class="location-tag text-xs font-medium">${job.location}</span>` : ''}
-                            <span class="job-type-tag text-xs font-medium">${job.type}</span>
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center mt-4">
-                        <span class="date-text text-sm">${job.date}</span>
-                        <span class="view-details-link text-sm">View Details &rarr;</span>
-                    </div>
-                `;
-
-                jobCard.addEventListener('click', () => openModal(job));
-                jobListingsContainer.appendChild(jobCard);
-            });
+        function getUniqueCategories(jobs) {
+            const categories = new Set();
+            jobs.forEach(job => categories.add(job.category));
+            return ['All', ...Array.from(categories)].sort();
         }
 
-        // Function to render job table
-        function renderJobTable() {
-            const jobTableListings = document.getElementById('jobTableListings');
-            jobTableListings.innerHTML = ''; // Clear existing table
+        function renderJobTable(category, containerId) {
+            const jobTableListings = document.getElementById(containerId);
+            jobTableListings.innerHTML = '';
 
-            // Group jobs by category
-            const groupedJobs = jobData.reduce((acc, job) => {
-                const category = job.category;
-                if (!acc[category]) {
-                    acc[category] = [];
-                }
-                acc[category].push(job);
-                return acc;
-            }, {});
+            const filteredJobs = category === 'All' ? jobData : jobData.filter(job => job.category === category);
+
+            if (filteredJobs.length === 0) {
+                jobTableListings.innerHTML = `<p class="text-gray-400 text-center py-8">No jobs found in this category.</p>`;
+                return;
+            }
 
             let tableHTML = `
                 <table class="job-table">
@@ -1015,27 +993,19 @@
                     </thead>
                     <tbody>
             `;
-
-            for (const category in groupedJobs) {
+            filteredJobs.forEach(job => {
                 tableHTML += `
-                    <tr>
-                        <td colspan="7" class="group-header">${category.toUpperCase()}</td>
+                    <tr class="cursor-pointer" data-job-index="${jobData.indexOf(job)}">
+                        <td data-label="Job Title">${job.title}</td>
+                        <td data-label="Company">${job.company || 'N/A'}</td>
+                        <td data-label="Location">${job.location}</td>
+                        <td data-label="Experience">${job.experience || 'N/A'}</td>
+                        <td data-label="Skills">${job.skills ? job.skills.join(', ') : 'N/A'}</td>
+                        <td data-label="Date Posted">${job.date}</td>
+                        <td data-label="Action"><span class="view-details-link text-sm">View Details &rarr;</span></td>
                     </tr>
                 `;
-                groupedJobs[category].forEach(job => {
-                    tableHTML += `
-                        <tr class="cursor-pointer" data-job-index="${jobData.indexOf(job)}">
-                            <td data-label="Job Title">${job.title}</td>
-                            <td data-label="Company">${job.company || 'N/A'}</td>
-                            <td data-label="Location">${job.location}</td>
-                            <td data-label="Experience">${job.experience || 'N/A'}</td>
-                            <td data-label="Skills">${job.skills ? job.skills.join(', ') : 'N/A'}</td>
-                            <td data-label="Date Posted">${job.date}</td>
-                            <td data-label="Action"><span class="view-details-link text-sm">View Details &rarr;</span></td>
-                        </tr>
-                    `;
-                });
-            }
+            });
 
             tableHTML += `
                     </tbody>
@@ -1044,43 +1014,70 @@
             jobTableListings.innerHTML = tableHTML;
 
             jobTableListings.querySelectorAll('tbody tr').forEach(row => {
-                if (!row.classList.contains('group-header')) {
-                    row.addEventListener('click', (event) => {
-                        if (event.target.classList.contains('view-details-link')) {
-                            const jobIndex = parseInt(row.dataset.jobIndex);
-                            openModal(jobData[jobIndex]);
-                        } else {
-                            const jobIndex = parseInt(row.dataset.jobIndex);
-                            openModal(jobData[jobIndex]);
-                        }
-                    });
-                }
+                row.addEventListener('click', (event) => {
+                    if (event.target.classList.contains('view-details-link')) {
+                        const jobIndex = parseInt(row.dataset.jobIndex);
+                        openModal(jobData[jobIndex]);
+                    } else {
+                        const jobIndex = parseInt(row.dataset.jobIndex);
+                        openModal(jobData[jobIndex]);
+                    }
+                });
             });
         }
 
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
+        function renderMainTabs() {
+            const mainTabsContainer = document.querySelector('.main-tabs');
+            mainTabsContainer.innerHTML = '';
 
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetTab = button.dataset.tab;
+            const categories = getUniqueCategories(jobData);
 
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
+            categories.forEach((category, index) => {
+                const button = document.createElement('button');
+                button.className = `tab-button ${index === 0 ? 'active' : ''}`;
+                button.dataset.category = category;
+                button.textContent = category;
+                mainTabsContainer.appendChild(button);
 
-                button.classList.add('active');
-                document.getElementById(targetTab).classList.add('active');
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.main-tabs .tab-button').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('main .category-content').forEach(content => content.classList.remove('active'));
 
-                if (targetTab === 'cardView') {
-                    renderJobCards();
-                } else if (targetTab === 'tableView') {
-                    renderJobTable();
-                }
+                    button.classList.add('active');
+                    const targetContentId = `content-${category.replace(/\s+/g, '-')}`;
+                    document.getElementById(targetContentId).classList.add('active');
+
+                    renderJobTable(category, `tableView-${category.replace(/\s+/g, '-')}`);
+                });
             });
-        });
+        }
+
+        function renderCategoryContentAreas() {
+            const mainContentArea = document.querySelector('main');
+            mainContentArea.innerHTML = '';
+
+            const categories = getUniqueCategories(jobData);
+
+            categories.forEach(category => {
+                const categoryContentDiv = document.createElement('div');
+                categoryContentDiv.id = `content-${category.replace(/\s+/g, '-')}`;
+                categoryContentDiv.className = `category-content ${category === 'All' ? 'active' : ''}`;
+
+                categoryContentDiv.innerHTML = `
+                    <div id="tableView-${category.replace(/\s+/g, '-')}" class="sub-tab-content active overflow-x-auto rounded-lg"></div>
+                `;
+                mainContentArea.appendChild(categoryContentDiv);
+            });
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
-            renderJobCards(); 
+            renderMainTabs();
+            renderCategoryContentAreas();
+            
+            const allCategoryButton = document.querySelector('.main-tabs .tab-button[data-category="All"]');
+            if (allCategoryButton) {
+                allCategoryButton.click();
+            }
         });
     </script>
 </body>
