@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Postings</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Deeper dark background (slate-900) */
+            color: #e2e8f0; /* Light text (slate-200) */
+            line-height: 1.6;
+        }
+        .job-card {
+            background-color: #1e293b; /* Slightly lighter dark background for cards (slate-800) */
+            border: 1px solid #334155; /* Darker border (slate-700) */
+            transition: all 0.3s ease-in-out; /* Smooth transition for hover effects */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+        .job-card:hover {
+            transform: translateY(-5px) scale(1.02); /* Lift and slightly enlarge on hover */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* More prominent shadow on hover */
+        }
+        .category-tag {
+            background-color: #6366f1; /* Indigo-500 for categories */
+            color: white;
+            padding: 0.25rem 0.75rem; /* Slightly more padding */
+            border-radius: 9999px; /* Fully rounded */
+            font-weight: 500; /* Medium font weight */
+            text-transform: capitalize; /* Capitalize the first letter */
+        }
+        .location-tag {
+            background-color: #f97316; /* Orange-500 for locations */
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+        .job-type-tag {
+            background-color: #a855f7; /* Purple-500 for job types */
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+        .date-text {
+            color: #94a3b8; /* Slate-400 for dates */
+            font-size: 0.875rem; /* Smaller font size */
+        }
+        .view-details-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: #3b82f6; /* Blue-500 */
+            font-weight: 600; /* Semi-bold */
+            transition: color 0.2s ease-in-out;
+        }
+        .view-details-link:hover {
+            color: #60a5fa; /* Blue-400 on hover */
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s forwards; /* Use forwards to keep the final state */
+            backdrop-filter: blur(5px); /* Blurred background */
+        }
+        
+        .modal-content {
+            background-color: #1e293b; /* Same as job card */
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideIn 0.3s forwards; /* Use forwards to keep the final state */
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3); /* More prominent shadow for modal */
+        }
+        
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #334155;
+            position: relative; /* For positioning the close button */
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .close {
+            color: #94a3b8; /* Slate-400 */
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .close:hover {
+            color: #ffffff;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        /* Tab styles */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #334155;
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #94a3b8; /* Slate-400 */
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-button:hover {
+            color: #e2e8f0; /* Light text on hover */
+            border-color: #6366f1; /* Indigo-500 on hover */
+        }
+        .tab-button.active {
+            color: #e2e8f0; /* Light text for active tab */
+            border-color: #3b82f6; /* Blue-500 for active tab */
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Table styles */
+        .job-table {
+            width: 100%;
+            border-collapse: separate; /* Use separate to allow border-radius on cells */
+            border-spacing: 0; /* Remove default spacing */
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden; /* Ensures rounded corners are visible */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .job-table th, .job-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        .job-table th {
+            background-color: #334155; /* Darker header background */
+            color: #cbd5e0;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            position: sticky;
+            top: 0; /* Make header sticky */
+            z-index: 10;
+        }
+        .job-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .job-table tbody tr:hover {
+            background-color: #2d3748; /* Darker hover for rows */
+        }
+        .job-table .group-header {
+            background-color: #4a5568; /* Even darker for group headers */
+            color: #e2e8f0;
+            font-weight: 700;
+            text-align: center;
+            padding: 0.75rem 1rem;
+            position: sticky;
+            top: 48px; /* Position below sticky table header */
+            z-index: 9;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                margin: 2% auto;
+                max-height: 95vh;
+            }
+            .modal-header, .modal-body {
+                padding: 16px;
+            }
+            .job-card {
+                padding: 1.25rem; /* Adjust padding for smaller screens */
+            }
+            .job-table, .job-table tbody, .job-table tr, .job-table td, .job-table th {
+                display: block; /* Stack elements for mobile */
+            }
+            .job-table thead {
+                display: none; /* Hide table header on small screens */
+            }
+            .job-table tr {
+                margin-bottom: 1rem;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .job-table td {
+                border-bottom: 1px solid #334155;
+                text-align: right;
+                position: relative;
+                padding-left: 50%; /* Space for pseudo-element label */
+            }
+            .job-table td::before {
+                content: attr(data-label); /* Use data-label for mobile headers */
+                position: absolute;
+                left: 1rem;
+                width: calc(50% - 1rem);
+                padding-right: 1rem;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: 600;
+                color: #cbd5e0;
+            }
+            .job-table td:last-child {
+                border-bottom: none;
+            }
+            .job-table .group-header {
+                font-size: 1rem;
+                top: 0; /* Group header should be at the top on mobile */
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem !important; /* Adjust overall body padding */
+            }
+            .modal-content {
+                width: 98%;
+                margin: 1% auto;
+            }
+            .job-card h2 {
+                font-size: 1.125rem; /* Smaller title for mobile */
+            }
+            .category-tag, .location-tag, .job-type-tag {
+                font-size: 0.625rem; /* Even smaller tags on very small screens */
+                padding: 0.2rem 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 md:p-8">
+    <header class="text-center mb-8">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-2 tracking-tight">Discover Your Next Career</h1>
+        <p class="text-base sm:text-lg text-gray-400">Explore exciting job opportunities tailored for you.</p>
+    </header>
+
+    <div class="tabs max-w-2xl mx-auto">
+        <button class="tab-button active" data-tab="cardView">Card View</button>
+        <button class="tab-button" data-tab="tableView">Table View</button>
+    </div>
+
+    <main class="max-w-6xl mx-auto">
+        <div id="cardView" class="tab-content active">
+            <div id="jobCardListings" class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <!-- Job cards will be injected here by JavaScript -->
+            </div>
+        </div>
+
+        <div id="tableView" class="tab-content">
+            <div id="jobTableListings" class="overflow-x-auto rounded-lg">
+                <!-- Job table will be injected here by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="text-center mt-12 py-4 text-gray-500 text-sm border-t border-slate-700">
+        <p>&copy; 2024 Job Board. All rights reserved.</p>
+    </footer>
+
+    <!-- Modal -->
+    <div id="jobModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close">&times;</span>
+                <h2 id="modalTitle" class="text-xl sm:text-2xl font-bold text-white mb-2"></h2>
+                <div id="modalTags" class="flex flex-wrap gap-2 mb-2"></div>
+                <p id="modalDate" class="date-text text-sm"></p>
+            </div>
+            <div class="modal-body">
+                <div id="modalDescription" class="text-gray-300 leading-relaxed"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Placeholder data - PLEASE REPLACE WITH DATA FROM NOTION PAGE
+        const jobData = [
+            { 
+                title: "Freelancer Tele Associates", 
+                category: "Sales", 
+                date: "16/09/2024", 
+                location: "Remote", 
+                type: "Contractual",
+                company: "ABC Corp", // Placeholder
+                experience: "1-2 Years", // Placeholder
+                skills: ["Sales", "Communication", "Telemarketing"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">We are seeking dynamic Freelancer Tele Associates to join our remote sales team. This contractual position offers flexible working hours and competitive commission-based compensation.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Conduct outbound calls to potential customers</li>
+                        <li>Present product/service offerings effectively</li>
+                        <li>Achieve monthly sales targets</li>
+                        <li>Maintain customer relationship records</li>
+                        <li>Follow up on leads and prospects</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Excellent communication skills</li>
+                        <li>Previous sales experience preferred</li>
+                        <li>Self-motivated and target-oriented</li>
+                        <li>Reliable internet connection for remote work</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">What We Offer:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Flexible working hours</li>
+                        <li>Competitive commission structure</li>
+                        <li>Training and support provided</li>
+                        <li>Growth opportunities</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Analyst - Control Manager", 
+                category: "management", 
+                date: "16/09/2024", 
+                location: "Bangalore", 
+                type: "Job",
+                company: "XYZ Ltd", // Placeholder
+                experience: "3-5 Years", // Placeholder
+                skills: ["Risk Management", "Compliance", "Financial Analysis"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Join our team as an Analyst - Control Manager in Bangalore. This role involves managing risk controls and ensuring compliance across various business operations.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Monitor and assess operational risks</li>
+                        <li>Develop and implement control frameworks</li>
+                        <li>Conduct regular compliance audits</li>
+                        <li>Prepare detailed risk assessment reports</li>
+                        <li>Collaborate with cross-functional teams</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Bachelor's degree in Finance, Economics, or related field</li>
+                        <li>3+ years of experience in risk management</li>
+                        <li>Strong analytical and problem-solving skills</li>
+                        <li>Knowledge of regulatory requirements</li>
+                        <li>Proficiency in Excel and data analysis tools</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Benefits:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Competitive salary package</li>
+                        <li>Health insurance coverage</li>
+                        <li>Professional development opportunities</li>
+                        <li>Work-life balance initiatives</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Visiting Faculty/Guest Faculty - Computer Science", 
+                category: "teaching", 
+                date: "13/09/2024", 
+                location: "Patna", 
+                type: "Job",
+                company: "Tech University", // Placeholder
+                experience: "5+ Years", // Placeholder
+                skills: ["Lecturing", "Curriculum Development", "Mentoring"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">We are looking for experienced Computer Science professionals to join as Visiting Faculty in our Patna campus. Share your industry expertise with the next generation of technology leaders.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Deliver lectures on Computer Science subjects</li>
+                        <li>Develop course materials and curriculum</li>
+                        <li>Mentor and guide students</li>
+                        <li>Participate in academic activities</li>
+                        <li>Contribute to research initiatives</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Master's/PhD in Computer Science or related field</li>
+                        <li>Industry experience in software development</li>
+                        <li>Strong presentation and communication skills</li>
+                        <li>Passion for teaching and mentoring</li>
+                        <li>Knowledge of current technology trends</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">What We Offer:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Flexible teaching schedule</li>
+                        <li>Competitive hourly compensation</li>
+                        <li>Academic environment</li>
+                        <li>Opportunity to shape future technologists</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Customer Service Sales Specialist", 
+                category: "Sales", 
+                date: "14/09/2024", 
+                location: "Remote", 
+                type: "Job",
+                company: "Global Connect", // Placeholder
+                experience: "2-4 Years", // Placeholder
+                skills: ["Customer Service", "Sales", "CRM"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Join our remote customer service team as a Sales Specialist. Combine excellent customer service with sales expertise to drive revenue growth while ensuring customer satisfaction.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Handle customer inquiries and resolve issues</li>
+                        <li>Identify upselling and cross-selling opportunities</li>
+                        <li>Process orders and manage customer accounts</li>
+                        <li>Meet sales targets while maintaining service quality</li>
+                        <li>Document customer interactions and feedback</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>2+ years in customer service or sales</li>
+                        <li>Excellent verbal and written communication</li>
+                        <li>CRM software experience</li>
+                        <li>Problem-solving and multitasking abilities</li>
+                        <li>Home office setup for remote work</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Benefits:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Remote work flexibility</li>
+                        <li>Base salary plus commission</li>
+                        <li>Comprehensive training program</li>
+                        <li>Career advancement opportunities</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Sr Financial Analyst", 
+                category: "Finance", 
+                date: "13/09/2024", 
+                location: "Hyderabad", 
+                type: "Job",
+                company: "FinTech Solutions", // Placeholder
+                experience: "5-7 Years", // Placeholder
+                skills: ["Financial Modeling", "Budgeting", "Analysis"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">We are seeking a Senior Financial Analyst to join our finance team in Hyderabad. Play a key role in financial planning, analysis, and strategic decision-making processes.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Prepare detailed financial reports and analysis</li>
+                        <li>Support budgeting and forecasting processes</li>
+                        <li>Analyze financial performance and trends</li>
+                        <li>Provide insights for strategic planning</li>
+                        <li>Collaborate with various departments on financial matters</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Bachelor's degree in Finance, Accounting, or Economics</li>
+                        <li>5+ years of financial analysis experience</li>
+                        <li>Advanced Excel and financial modeling skills</li>
+                        <li>Knowledge of ERP systems</li>
+                        <li>CPA or CFA certification preferred</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">What We Offer:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Competitive salary and bonuses</li>
+                        <li>Comprehensive benefits package</li>
+                        <li>Professional certification support</li>
+                        <li>Growth opportunities in finance</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Service Desk Tier 2", 
+                category: "Community / Support", 
+                date: "14/09/2024", 
+                location: "Chennai", 
+                type: "Job",
+                company: "IT Support Hub", // Placeholder
+                experience: "3-5 Years", // Placeholder
+                skills: ["Troubleshooting", "IT Support", "Networking"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Join our IT support team as a Service Desk Tier 2 specialist in Chennai. Provide advanced technical support and resolve complex IT issues for our organization.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Handle escalated technical support tickets</li>
+                        <li>Troubleshoot hardware and software issues</li>
+                        <li>Provide remote desktop support</li>
+                        <li>Maintain IT documentation and knowledge base</li>
+                        <li>Mentor Tier 1 support staff</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>3+ years in IT support or help desk</li>
+                        <li>Strong Windows/Mac OS troubleshooting skills</li>
+                        <li>Knowledge of networking fundamentals</li>
+                        <li>ITIL certification preferred</li>
+                        <li>Excellent problem-solving abilities</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Benefits:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Competitive IT industry salary</li>
+                        <li>Technical training and certifications</li>
+                        <li>Flexible working arrangements</li>
+                        <li>Career progression in IT support</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Sector Lead - Self Employed Proposition", 
+                category: "Others", 
+                date: "11/09/2024", 
+                location: "Mumbai", 
+                type: "Job",
+                company: "Innovate Bank", // Placeholder
+                experience: "8+ Years", // Placeholder
+                skills: ["Strategy", "Business Development", "Market Analysis"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Lead our Self Employed Proposition sector in Mumbai. Drive strategic initiatives for self-employed customer segments and develop innovative financial solutions.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Develop strategies for self-employed customer segments</li>
+                        <li>Lead cross-functional project teams</li>
+                        <li>Analyze market trends and opportunities</li>
+                        <li>Design customer-centric solutions</li>
+                        <li>Manage stakeholder relationships</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>MBA or equivalent advanced degree</li>
+                        <li>8+ years in strategy or business development</li>
+                        <li>Financial services industry experience</li>
+                        <li>Strong leadership and communication skills</li>
+                        <li>Data-driven decision making approach</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">What We Offer:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Senior leadership role</li>
+                        <li>Competitive executive compensation</li>
+                        <li>Strategic impact on business</li>
+                        <li>Professional development budget</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Assistant Manager / Manager - Talent Acquisition", 
+                category: "management", 
+                date: "11/09/2024", 
+                location: "Bangalore", 
+                type: "Job",
+                company: "HR Solutions Inc.", // Placeholder
+                experience: "5-7 Years", // Placeholder
+                skills: ["Recruitment", "Talent Sourcing", "ATS"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Join our HR team as Assistant Manager/Manager - Talent Acquisition in Bangalore. Lead recruitment efforts and build world-class teams for our growing organization.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Manage end-to-end recruitment processes</li>
+                        <li>Source and screen candidates across multiple channels</li>
+                        <li>Build talent pipelines for critical roles</li>
+                        <li>Partner with hiring managers on requirements</li>
+                        <li>Develop recruitment strategies and processes</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>5+ years in talent acquisition or recruitment</li>
+                        <li>Experience with ATS and recruitment tools</li>
+                        <li>Strong interviewing and assessment skills</li>
+                        <li>Knowledge of employment laws and regulations</li>
+                        <li>Excellent stakeholder management abilities</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Benefits:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Management role with growth potential</li>
+                        <li>Competitive HR industry package</li>
+                        <li>HR certification support</li>
+                        <li>Dynamic work environment</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Franchise Development Manager", 
+                category: "management", 
+                date: "12/09/2024", 
+                location: "Hyderabad", 
+                type: "Job",
+                company: "Franchise Growth", // Placeholder
+                experience: "6-9 Years", // Placeholder
+                skills: ["Franchise Sales", "Business Development", "Negotiation"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Lead our franchise expansion efforts as a Franchise Development Manager in Hyderabad. Drive growth through strategic franchise partnerships and business development.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Identify and develop franchise opportunities</li>
+                        <li>Negotiate franchise agreements and terms</li>
+                        <li>Support franchisee onboarding and training</li>
+                        <li>Monitor franchise performance and compliance</li>
+                        <li>Develop franchise marketing materials</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>6+ years in business development or franchise</li>
+                        <li>Strong negotiation and relationship skills</li>
+                        <li>Understanding of franchise business models</li>
+                        <li>Regional market knowledge</li>
+                        <li>MBA preferred</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">What We Offer:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Leadership role in expansion</li>
+                        <li>Performance-based incentives</li>
+                        <li>Travel opportunities</li>
+                        <li>Business development experience</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Sales Development Representative", 
+                category: "Sales", 
+                date: "11/09/2024", 
+                location: "Pune", 
+                type: "Job",
+                company: "SalesForce Pro", // Placeholder
+                experience: "1-3 Years", // Placeholder
+                skills: ["Lead Generation", "Cold Calling", "CRM"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Join our sales team as a Sales Development Representative in Pune. Generate qualified leads and support our sales pipeline growth through strategic outreach.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Generate qualified leads through outbound activities</li>
+                        <li>Conduct initial prospect qualification calls</li>
+                        <li>Schedule meetings for senior sales representatives</li>
+                        <li>Maintain accurate CRM records</li>
+                        <li>Follow up on marketing generated leads</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>1-3 years in sales or business development</li>
+                        <li>Excellent communication and phone skills</li>
+                        <li>Goal-oriented and persistent attitude</li>
+                        <li>CRM software experience</li>
+                        <li>Bachelor's degree preferred</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Benefits:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Competitive base salary plus incentives</li>
+                        <li>Comprehensive sales training</li>
+                        <li>Career progression in sales</li>
+                        <li>Dynamic team environment</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Social Media Manager-Cricket", 
+                category: "management", 
+                date: "11/09/2024", 
+                location: "Remote", 
+                type: "Job",
+                company: "Sports Media Co.", // Placeholder
+                experience: "4-6 Years", // Placeholder
+                skills: ["Social Media Marketing", "Content Creation", "Cricket Knowledge"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Lead our cricket-focused social media strategy as a Remote Social Media Manager. Create engaging content and build communities around cricket and sports entertainment.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Develop cricket-focused social media strategies</li>
+                        <li>Create engaging content for multiple platforms</li>
+                        <li>Manage live match day social media coverage</li>
+                        <li>Build and engage cricket fan communities</li>
+                        <li>Analyze social media metrics and performance</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>4+ years in social media management</li>
+                        <li>Deep knowledge and passion for cricket</li>
+                        <li>Creative content creation skills</li>
+                        <li>Experience with social media analytics tools</li>
+                        <li>Understanding of sports marketing</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">What We Offer:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Remote work flexibility</li>
+                        <li>Work with cricket content</li>
+                        <li>Creative freedom and autonomy</li>
+                        <li>Sports industry exposure</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Assistant Manager Training", 
+                category: "management", 
+                date: "12/09/2024", 
+                location: "N/A", 
+                type: "Job",
+                company: "Learning Hub", // Placeholder
+                experience: "4-6 Years", // Placeholder
+                skills: ["Training Delivery", "Instructional Design", "LMS Management"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Join our Learning & Development team as Assistant Manager Training. Design and deliver impactful training programs to enhance employee skills and performance.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Design and develop training programs</li>
+                        <li>Conduct training sessions and workshops</li>
+                        <li>Assess training effectiveness and ROI</li>
+                        <li>Manage learning management systems</li>
+                        <li>Collaborate with department heads on training needs</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>4+ years in training and development</li>
+                        <li>Strong presentation and facilitation skills</li>
+                        <li>Instructional design experience</li>
+                        <li>Knowledge of adult learning principles</li>
+                        <li>Training certification preferred</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Benefits:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Management role in L&D</li>
+                        <li>Opportunity to impact employee development</li>
+                        <li>Professional training and certifications</li>
+                        <li>Collaborative work environment</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Senior Manager Talent Acquisition", 
+                category: "management", 
+                date: "12/09/2024", 
+                location: "Bangalore", 
+                type: "Job",
+                company: "Global Recruiters", // Placeholder
+                experience: "8+ Years", // Placeholder
+                skills: ["Recruitment Strategy", "Team Leadership", "Employer Branding"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Lead our talent acquisition function as Senior Manager in Bangalore. Build and execute comprehensive recruitment strategies to attract top talent across the organization.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Lead talent acquisition strategy and operations</li>
+                        <li>Manage recruitment team and processes</li>
+                        <li>Partner with senior leadership on hiring plans</li>
+                        <li>Develop employer branding initiatives</li>
+                        <li>Implement recruitment technology solutions</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>8+ years in talent acquisition leadership</li>
+                        <li>Experience managing recruitment teams</li>
+                        <li>Strategic thinking and planning abilities</li>
+                        <li>Strong stakeholder management skills</li>
+                        <li>Advanced degree in HR or related field</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Benefits:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Senior management position</li>
+                        <li>Competitive executive package</li>
+                        <li>Leadership development opportunities</li>
+                        <li>Strategic impact on organization</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Talent Acquisition Specialist", 
+                category: "Content", 
+                date: "11/09/2024", 
+                location: "Pune", 
+                type: "Job",
+                company: "Creative Recruit", // Placeholder
+                experience: "3-5 Years", // Placeholder
+                skills: ["Recruitment Marketing", "Content Writing", "Candidate Experience"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Join our talent acquisition team as a Specialist in Pune. Focus on recruiting top talent while creating compelling recruitment content and candidate experiences.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Execute full-cycle recruitment processes</li>
+                        <li>Create engaging job descriptions and content</li>
+                        <li>Source candidates through various channels</li>
+                        <li>Conduct interviews and candidate assessments</li>
+                        <li>Enhance candidate experience throughout hiring</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>3+ years in talent acquisition</li>
+                        <li>Strong writing and content creation skills</li>
+                        <li>Experience with recruitment marketing</li>
+                        <li>Social media recruiting knowledge</li>
+                        <li>Excellent interpersonal skills</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Benefits:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Blend of recruitment and content work</li>
+                        <li>Creative and analytical role</li>
+                        <li>Professional development opportunities</li>
+                        <li>Collaborative team environment</li>
+                    </ul>
+                `
+            },
+            { 
+                title: "Sr. Data Analyst", 
+                category: "Analysis", 
+                date: "12/09/2024", 
+                location: "Remote", 
+                type: "Job",
+                company: "Data Insights", // Placeholder
+                experience: "5-8 Years", // Placeholder
+                skills: ["SQL", "Python", "Data Visualization", "Statistical Analysis"], // Placeholder
+                description: `
+                    <h3 class="text-lg font-semibold text-white mb-3">Job Description</h3>
+                    <p class="mb-4">Join our data team as a Senior Data Analyst working remotely. Transform complex data into actionable insights and drive data-driven decision making across the organization.</p>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Key Responsibilities:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>Analyze complex datasets to identify trends and patterns</li>
+                        <li>Create comprehensive reports and dashboards</li>
+                        <li>Collaborate with stakeholders on analytical requirements</li>
+                        <li>Develop predictive models and statistical analyses</li>
+                        <li>Present findings to senior management</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">Requirements:</h4>
+                    <ul class="mb-4 list-disc list-inside">
+                        <li>5+ years in data analysis or related field</li>
+                        <li>Advanced SQL and Python/R skills</li>
+                        <li>Experience with visualization tools (Tableau, Power BI)</li>
+                        <li>Statistical modeling and machine learning knowledge</li>
+                        <li>Strong business acumen and communication skills</li>
+                    </ul>
+                    
+                    <h4 class="text-md font-semibold text-white mb-2">What We Offer:</h4>
+                    <ul class="list-disc list-inside">
+                        <li>Fully remote work environment</li>
+                        <li>Competitive data science salary</li>
+                        <li>Access to latest analytics tools</li>
+                        <li>Continuous learning and development</li>
+                    </ul>
+                `
+            }
+        ];
+
+        const modal = document.getElementById('jobModal');
+        const closeModal = document.querySelector('.close');
+
+        function openModal(job) {
+            document.getElementById('modalTitle').textContent = job.title;
+            document.getElementById('modalDate').textContent = `Posted: ${job.date}`;
+            document.getElementById('modalDescription').innerHTML = job.description;
+            
+            // Update modal tags
+            const tagsContainer = document.getElementById('modalTags');
+            tagsContainer.innerHTML = `
+                <span class="category-tag text-xs font-medium px-2.5 py-0.5 rounded-full">${job.category}</span>
+                ${job.location !== "N/A" ? `<span class="location-tag text-xs font-medium px-2.5 py-0.5 rounded-full">${job.location}</span>` : ''}
+                <span class="job-type-tag text-xs font-medium px-2.5 py-0.5 rounded-full">${job.type}</span>
+            `;
+            
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function closeModalFunc() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; 
+        }
+
+        closeModal.onclick = closeModalFunc;
+
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                closeModalFunc();
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModalFunc();
+            }
+        });
+
+        function renderJobCards() {
+            const jobListingsContainer = document.getElementById('jobCardListings');
+            jobListingsContainer.innerHTML = ''; 
+
+            jobData.forEach(job => {
+                const jobCard = document.createElement('div');
+                jobCard.className = 'job-card p-4 sm:p-6 rounded-lg shadow-lg flex flex-col justify-between cursor-pointer h-full';
+
+                jobCard.innerHTML = `
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-semibold text-white mb-2">${job.title}</h2>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="category-tag text-xs font-medium">${job.category}</span>
+                            ${job.location !== "N/A" ? `<span class="location-tag text-xs font-medium">${job.location}</span>` : ''}
+                            <span class="job-type-tag text-xs font-medium">${job.type}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-4">
+                        <span class="date-text text-sm">${job.date}</span>
+                        <span class="view-details-link text-sm">View Details &rarr;</span>
+                    </div>
+                `;
+
+                jobCard.addEventListener('click', () => openModal(job));
+                jobListingsContainer.appendChild(jobCard);
+            });
+        }
+
+        // Function to render job table
+        function renderJobTable() {
+            const jobTableListings = document.getElementById('jobTableListings');
+            jobTableListings.innerHTML = ''; // Clear existing table
+
+            // Group jobs by category
+            const groupedJobs = jobData.reduce((acc, job) => {
+                const category = job.category;
+                if (!acc[category]) {
+                    acc[category] = [];
+                }
+                acc[category].push(job);
+                return acc;
+            }, {});
+
+            let tableHTML = `
+                <table class="job-table">
+                    <thead>
+                        <tr>
+                            <th>Job Title</th>
+                            <th>Company</th>
+                            <th>Location</th>
+                            <th>Experience</th>
+                            <th>Skills</th>
+                            <th>Date Posted</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            for (const category in groupedJobs) {
+                tableHTML += `
+                    <tr>
+                        <td colspan="7" class="group-header">${category.toUpperCase()}</td>
+                    </tr>
+                `;
+                groupedJobs[category].forEach(job => {
+                    tableHTML += `
+                        <tr class="cursor-pointer" data-job-index="${jobData.indexOf(job)}">
+                            <td data-label="Job Title">${job.title}</td>
+                            <td data-label="Company">${job.company || 'N/A'}</td>
+                            <td data-label="Location">${job.location}</td>
+                            <td data-label="Experience">${job.experience || 'N/A'}</td>
+                            <td data-label="Skills">${job.skills ? job.skills.join(', ') : 'N/A'}</td>
+                            <td data-label="Date Posted">${job.date}</td>
+                            <td data-label="Action"><span class="view-details-link text-sm">View Details &rarr;</span></td>
+                        </tr>
+                    `;
+                });
+            }
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            jobTableListings.innerHTML = tableHTML;
+
+            jobTableListings.querySelectorAll('tbody tr').forEach(row => {
+                if (!row.classList.contains('group-header')) {
+                    row.addEventListener('click', (event) => {
+                        if (event.target.classList.contains('view-details-link')) {
+                            const jobIndex = parseInt(row.dataset.jobIndex);
+                            openModal(jobData[jobIndex]);
+                        } else {
+                            const jobIndex = parseInt(row.dataset.jobIndex);
+                            openModal(jobData[jobIndex]);
+                        }
+                    });
+                }
+            });
+        }
+
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                button.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+
+                if (targetTab === 'cardView') {
+                    renderJobCards();
+                } else if (targetTab === 'tableView') {
+                    renderJobTable();
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderJobCards(); 
+        });
+    </script>
+</body>
+</html>
