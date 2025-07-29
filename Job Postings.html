@@ -5,64 +5,126 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Postings</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Axios library for making HTTP requests -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a; 
-            color: #e2e8f0; 
+            background-color: #f0f8ff; 
+            color: #000000; 
             line-height: 1.6;
         }
-        .job-card {
-            background-color: #1e293b; 
-            border: 1px solid #334155; 
-            transition: all 0.3s ease-in-out; 
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+        
+        .header-title {
+            color: #2c5282;
         }
-        .job-card:hover {
-            transform: translateY(-5px) scale(1.02); 
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); 
+
+        .header-subtitle {
+            color: #6a7f9c;
         }
-        .category-tag {
-            background-color: #6366f1; 
-            color: white;
-            padding: 0.25rem 0.75rem; 
-            border-radius: 9999px; 
-            font-weight: 500; 
-            text-transform: capitalize; 
+
+        .job-table-container {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
-        .location-tag {
-            background-color: #f97316; 
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-weight: 500;
-            text-transform: capitalize;
+
+        .job-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Ensures columns are respected */
         }
-        .job-type-tag {
-            background-color: #a855f7; 
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-weight: 500;
-            text-transform: capitalize;
+
+        .job-table th, .job-table td {
+            padding: 0.9rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .date-text {
-            color: #94a3b8; 
-            font-size: 0.875rem; 
+
+        .job-table th {
+            background-color: #ebf8ff; 
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 0.875rem;
         }
-        .view-details-link {
-            display: inline-flex;
+        
+        .job-table tbody tr:hover {
+            background-color: #f7fafc; 
+        }
+
+        .clickable-header { /* Applied to the <th> */
+            cursor: pointer;
+        }
+        .sortable-content { /* Applied to the inner <div> */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .sort-icon {
+            font-size: 1em;
+            color: #a0aec0;
+            opacity: 0.5;
+        }
+        .clickable-header.asc .sort-icon.asc,
+        .clickable-header.desc .sort-icon.desc {
+            color: #2d3748;
+            opacity: 1;
+        }
+
+        .pagination-controls {
+            display: flex;
+            justify-content: flex-end;
             align-items: center;
             gap: 0.25rem;
-            color: #3b82f6; 
-            font-weight: 600; 
-            transition: color 0.2s ease-in-out;
         }
-        .view-details-link:hover {
-            color: #60a5fa; 
+        .pagination-button {
+            padding: 0.4rem 0.8rem;
+            background-color: #ffffff;
+            color: #2d3748;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .pagination-button:hover:not(.active):not(.disabled) {
+            background-color: #f7fafc;
+        }
+        .pagination-button.active {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .pagination-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination-info {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        .entries-per-page-container, .search-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #2d3748;
+        }
+        .entries-per-page-select, .search-input {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #2d3748;
+            padding: 0.5rem 0.8rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+        .search-input {
+            width: 100%;
+            max-width: 250px;
         }
 
         .modal {
@@ -73,16 +135,15 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.4);
             animation: fadeIn 0.3s forwards;
-            backdrop-filter: blur(5px); 
         }
         
         .modal-content {
-            background-color: #1e293b; 
+            background-color: #ffffff; 
             margin: 5% auto;
             padding: 0;
-            border: 1px solid #334155;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
             width: 90%;
             max-width: 700px;
@@ -90,12 +151,12 @@
             overflow-y: auto;
             position: relative;
             animation: slideIn 0.3s forwards;
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3); 
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1); 
         }
         
         .modal-header {
             padding: 24px;
-            border-bottom: 1px solid #334155;
+            border-bottom: 1px solid #e2e8f0;
             position: relative;
         }
         
@@ -104,7 +165,7 @@
         }
         
         .close {
-            color: #94a3b8;
+            color: #a0aec0;
             position: absolute;
             top: 16px;
             right: 20px;
@@ -115,7 +176,7 @@
         }
         
         .close:hover {
-            color: #ffffff;
+            color: #2d3748;
         }
         
         @keyframes fadeIn {
@@ -127,221 +188,67 @@
             from { transform: translateY(-50px) scale(0.95); opacity: 0; }
             to { transform: translateY(0) scale(1); opacity: 1; }
         }
-        
-        .main-tabs {
-            display: flex;
-            flex-wrap: wrap; 
-            justify-content: center;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #334155;
-        }
-        .main-tabs .tab-button {
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #94a3b8; 
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s ease-in-out;
-            white-space: nowrap; 
-        }
-        .main-tabs .tab-button:hover {
-            color: #e2e8f0; 
-            border-color: #6366f1; 
-        }
-        .main-tabs .tab-button.active {
-            color: #e2e8f0; 
-            border-color: #3b82f6; 
-        }
 
-        .category-content {
-            display: none;
-        }
-        .category-content.active {
-            display: block;
-        }
-        
-        .sub-tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid #334155;
-        }
-        .sub-tab-button {
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #94a3b8;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s ease-in-out;
-        }
-        .sub-tab-button:hover {
-            color: #e2e8f0;
-            border-color: #6366f1;
-        }
-        .sub-tab-button.active {
-            color: #e2e8f0;
-            border-color: #3b82f6;
-        }
-        .sub-tab-content {
-            display: none;
-        }
-        .sub-tab-content.active {
-            display: block;
-        }
-
-        .job-table {
-            width: 100%;
-            border-collapse: separate; 
-            border-spacing: 0; 
-            background-color: #1e293b;
-            border-radius: 8px;
-            overflow: hidden; 
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .job-table th, .job-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #334155;
-        }
-        .job-table th {
-            background-color: #334155; 
-            color: #cbd5e0;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.875rem;
-            position: sticky;
-            top: 0; 
-            z-index: 10;
-        }
-        .job-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-        .job-table tbody tr:hover {
-            background-color: #2d3748; 
-        }
-
-        @media (max-width: 768px) {
-            .modal-content {
-                width: 95%;
-                margin: 2% auto;
-                max-height: 95vh;
-            }
-            .modal-header, .modal-body {
-                padding: 16px;
-            }
-            .job-card {
-                padding: 1.25rem; 
-            }
-            .job-table, .job-table tbody, .job-table tr, .job-table td, .job-table th {
-                display: block; 
-            }
-            .job-table thead {
-                display: none; 
-            }
-            .job-table tr {
-                margin-bottom: 1rem;
-                border: 1px solid #334155;
-                border-radius: 8px;
-                overflow: hidden;
-            }
-            .job-table td {
-                border-bottom: 1px solid #334155;
-                text-align: right;
-                position: relative;
-                padding-left: 50%; 
-            }
-            .job-table td::before {
-                content: attr(data-label); 
-                position: absolute;
-                left: 1rem;
-                width: calc(50% - 1rem);
-                padding-right: 1rem;
-                white-space: nowrap;
-                text-align: left;
-                font-weight: 600;
-                color: #cbd5e0;
-            }
-            .job-table td:last-child {
-                border-bottom: none;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            body {
-                padding: 1rem !important; 
-            }
-            .modal-content {
-                width: 98%;
-                margin: 1% auto;
-            }
-            .job-card h2 {
-                font-size: 1.125rem; 
-            }
-            .category-tag, .location-tag, .job-type-tag {
-                font-size: 0.625rem; 
-                padding: 0.2rem 0.6rem;
-            }
-            .main-tabs .tab-button {
-                padding: 0.5rem 1rem;
-                font-size: 0.875rem;
-            }
-            .sub-tab-button {
-                font-size: 0.8rem;
-                padding: 0.4rem 0.8rem;
-            }
+        .overflow-x-auto {
+            overflow-x: auto;
         }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8">
     <header class="text-center mb-8">
-        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-2 tracking-tight">Discover Your Next Career</h1>
-        <p class="text-base sm:text-lg text-gray-400">Explore exciting job opportunities tailored for you.</p>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold header-title mb-2 tracking-tight">Discover Your Next Career</h1>
+        <p class="text-base sm:text-lg header-subtitle">Explore exciting job opportunities tailored for you.</p>
     </header>
 
-    <div class="main-tabs max-w-6xl mx-auto mb-8">
-        <p class="text-center w-full">Loading job categories...</p>
-    </div>
-
-    <main class="max-w-6xl mx-auto">
-        <p id="loading-message" class="text-center">Loading job listings...</p>
+    <main class="max-w-7xl mx-auto">
+         <div id="job-board-container">
+             <p id="loading-message" class="text-center">Loading job listings...</p>
+         </div>
     </main>
-
-    <footer class="text-center mt-12 py-4 text-gray-500 text-sm border-t border-slate-700">
-        <p>© 2024 Job Board. All rights reserved.</p>
-    </footer>
 
     <div id="jobModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <span class="close">×</span>
-                <h2 id="modalTitle" class="text-xl sm:text-2xl font-bold text-white mb-2"></h2>
+                <h2 id="modalTitle" class="text-xl sm:text-2xl font-bold text-gray-800 mb-2"></h2>
+                <p id="modalCompany" class="text-lg text-gray-600 mb-2"></p>
                 <div id="modalTags" class="flex flex-wrap gap-2 mb-2"></div>
-                <p id="modalDate" class="date-text text-sm"></p>
+                <p id="modalDate" class="text-sm text-gray-500"></p>
             </div>
             <div class="modal-body">
-                <div id="modalDescription" class="text-gray-300 leading-relaxed"></div>
+                <h3 class="font-bold text-lg mb-2 text-gray-800">Skills</h3>
+                <p id="modalSkills" class="text-gray-700 mb-4"></p>
+                <h3 class="font-bold text-lg mb-2 text-gray-800">Job Description</h3>
+                <div id="modalDescription" class="text-gray-700 leading-relaxed"></div>
             </div>
         </div>
     </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('jobModal');
             const closeModalBtn = document.querySelector('.close');
-            let allJobsData = []; // To store the transformed job data globally
+            let allJobsData = [];
+            let currentFilteredJobs = [];
+
+            let currentPage = 1;
+            let jobsPerPage = 10;
+            let currentSortColumn = 'date';
+            let currentSortDirection = 'desc';
+            let searchQuery = '';
 
             function openModal(job) {
                 document.getElementById('modalTitle').textContent = job.title;
+                document.getElementById('modalCompany').textContent = job.company;
                 document.getElementById('modalDate').textContent = `Posted: ${job.date}`;
                 document.getElementById('modalDescription').innerHTML = job.description;
+                document.getElementById('modalSkills').textContent = job.skills.join(', ') || 'N/A';
                 
                 const tagsContainer = document.getElementById('modalTags');
-                // For now, using 'type' as a proxy for category. Adjust if your API provides a category.
                 tagsContainer.innerHTML = `
-                    <span class="category-tag text-xs font-medium px-2.5 py-0.5 rounded-full">${job.category || 'General'}</span>
-                    ${job.location ? `<span class="location-tag text-xs font-medium px-2.5 py-0.5 rounded-full">${job.location}</span>` : ''}
-                    <span class="job-type-tag text-xs font-medium px-2.5 py-0.5 rounded-full">${job.type}</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">${job.category || 'General'}</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">${job.location || 'N/A'}</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">${job.experience || 'N/A'}</span>
                 `;
                 
                 modal.style.display = 'block';
@@ -361,112 +268,217 @@
                 if (event.key === 'Escape') closeModalFunc();
             });
 
-            function getUniqueCategories(jobs) {
-                const categories = new Set(jobs.map(job => job.category).filter(Boolean));
-                return ['All', ...Array.from(categories)].sort();
-            }
+            function renderJobBoard() {
+                let jobsToProcess = [...allJobsData];
 
-            function renderJobTable(category, containerId) {
-                const jobTableContainer = document.getElementById(containerId);
-                jobTableContainer.innerHTML = '';
-
-                const filteredJobs = category === 'All' 
-                    ? allJobsData 
-                    : allJobsData.filter(job => job.category === category);
-
-                if (filteredJobs.length === 0) {
-                    jobTableContainer.innerHTML = `<p class="text-gray-400 text-center py-8">No jobs found in this category.</p>`;
-                    return;
+                if (searchQuery) {
+                    jobsToProcess = jobsToProcess.filter(job => 
+                        Object.values(job).some(val => 
+                            String(val).toLowerCase().includes(searchQuery)
+                        )
+                    );
                 }
 
-                let tableHTML = `
-                    <table class="job-table">
-                        <thead>
-                            <tr>
-                                <th>Job Title</th>
-                                <th>Company</th>
-                                <th>Location</th>
-                                <th>Experience</th>
-                                <th>Skills</th>
-                                <th>Date Posted</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                filteredJobs.forEach(job => {
-                    tableHTML += `
-                        <tr class="cursor-pointer" data-job-id="${job.id}">
-                            <td data-label="Job Title">${job.title}</td>
-                            <td data-label="Company">${job.company}</td>
-                            <td data-label="Location">${job.location}</td>
-                            <td data-label="Experience">${job.experience}</td>
-                            <td data-label="Skills">${job.skills.join(', ')}</td>
-                            <td data-label="Date Posted">${job.date}</td>
-                            <td data-label="Action"><span class="view-details-link text-sm">View Details →</span></td>
-                        </tr>
-                    `;
-                });
-                tableHTML += `</tbody></table>`;
-                jobTableContainer.innerHTML = tableHTML;
+                jobsToProcess.sort((a, b) => {
+                    let valA = a[currentSortColumn] || '';
+                    let valB = b[currentSortColumn] || '';
 
-                jobTableContainer.querySelectorAll('tbody tr').forEach(row => {
+                    if (currentSortColumn === 'date') {
+                        valA = a.date.split('/').reverse().join('');
+                        valB = b.date.split('/').reverse().join('');
+                    } else {
+                        valA = String(valA).toLowerCase();
+                        valB = String(valB).toLowerCase();
+                    }
+
+                    if (valA < valB) return currentSortDirection === 'asc' ? -1 : 1;
+                    if (valA > valB) return currentSortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                currentFilteredJobs = jobsToProcess;
+
+                const startIndex = (currentPage - 1) * jobsPerPage;
+                const endIndex = startIndex + jobsPerPage;
+                const paginatedJobs = currentFilteredJobs.slice(startIndex, endIndex);
+                
+                const boardContainer = document.getElementById('job-board-container');
+                boardContainer.innerHTML = '';
+                
+                if (allJobsData.length === 0) {
+                     boardContainer.innerHTML = '<p class="text-center">No job listings found.</p>';
+                     return;
+                }
+
+                const totalEntries = currentFilteredJobs.length;
+                const showingStart = totalEntries > 0 ? startIndex + 1 : 0;
+                const showingEnd = Math.min(endIndex, totalEntries);
+
+                let tableHTML = `
+                    <div class="job-table-container">
+                        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                            <div class="entries-per-page-container">
+                                <select id="entriesPerPage" class="entries-per-page-select">
+                                    <option value="5" ${jobsPerPage === 5 ? 'selected' : ''}>5</option>
+                                    <option value="10" ${jobsPerPage === 10 ? 'selected' : ''}>10</option>
+                                    <option value="25" ${jobsPerPage === 25 ? 'selected' : ''}>25</option>
+                                    <option value="50" ${jobsPerPage === 50 ? 'selected' : ''}>50</option>
+                                </select>
+                                <span>entries per page</span>
+                            </div>
+                            <div class="search-container w-full md:w-auto">
+                                <label for="searchInput">Search:</label>
+                                <input type="text" id="searchInput" class="search-input" value="${searchQuery}">
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="job-table">
+                                <thead>
+                                    <tr>
+                                        <th class="clickable-header ${currentSortColumn === 'title' ? currentSortDirection : ''}" data-sort-by="title"><div class="sortable-content">Name <span class="sort-icon asc">▲</span><span class="sort-icon desc">▼</span></div></th>
+                                        <th class="clickable-header ${currentSortColumn === 'category' ? currentSortDirection : ''}" data-sort-by="category"><div class="sortable-content">Domain <span class="sort-icon asc">▲</span><span class="sort-icon desc">▼</span></div></th>
+                                        <th class="clickable-header ${currentSortColumn === 'date' ? currentSortDirection : ''}" data-sort-by="date"><div class="sortable-content">Job Posted <span class="sort-icon asc">▲</span><span class="sort-icon desc">▼</span></div></th>
+                                        <th class="clickable-header ${currentSortColumn === 'location' ? currentSortDirection : ''}" data-sort-by="location"><div class="sortable-content">Location <span class="sort-icon asc">▲</span><span class="sort-icon desc">▼</span></div></th>
+                                        <th class="clickable-header ${currentSortColumn === 'experience' ? currentSortDirection : ''}" data-sort-by="experience"><div class="sortable-content">Type <span class="sort-icon asc">▲</span><span class="sort-icon desc">▼</span></div></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                if(paginatedJobs.length > 0) {
+                    paginatedJobs.forEach(job => {
+                        tableHTML += `
+                            <tr class="cursor-pointer" data-job-id="${job.id}">
+                                <td>${job.title}</td>
+                                <td>${job.category}</td>
+                                <td>${job.date}</td>
+                                <td>${job.location}</td>
+                                <td>${job.experience}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tableHTML += `<tr><td colspan="5" class="text-center">No jobs found matching your criteria.</td></tr>`;
+                }
+                
+                tableHTML += `
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row justify-between items-center mt-4 gap-4">
+                            <div class="pagination-info">
+                                Showing ${showingStart} to ${showingEnd} of ${totalEntries} entries
+                            </div>
+                            <div id="pagination-controls-container" class="pagination-controls">
+                                <!-- Pagination buttons will be inserted here -->
+                            </div>
+                        </div>
+                    </div>`;
+
+                boardContainer.innerHTML = tableHTML;
+                renderPaginationControls(totalEntries);
+
+                boardContainer.querySelectorAll('tbody tr').forEach(row => {
                     row.addEventListener('click', () => {
                         const jobId = parseInt(row.dataset.jobId);
                         const selectedJob = allJobsData.find(j => j.id === jobId);
                         if (selectedJob) openModal(selectedJob);
                     });
                 });
+
+                boardContainer.querySelectorAll('.clickable-header').forEach(header => {
+                    header.addEventListener('click', () => {
+                        const sortBy = header.dataset.sortBy;
+                        if (currentSortColumn === sortBy) {
+                            currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            currentSortColumn = sortBy;
+                            currentSortDirection = 'asc';
+                        }
+                        currentPage = 1;
+                        renderJobBoard();
+                    });
+                });
+
+                document.getElementById('entriesPerPage').addEventListener('change', (event) => {
+                    jobsPerPage = parseInt(event.target.value);
+                    currentPage = 1;
+                    renderJobBoard();
+                });
+                
+                document.getElementById('searchInput').addEventListener('input', (event) => {
+                    searchQuery = event.target.value.toLowerCase();
+                    currentPage = 1;
+                    renderJobBoard();
+                });
             }
 
-            function renderMainTabs(jobs) {
-                const mainTabsContainer = document.querySelector('.main-tabs');
-                mainTabsContainer.innerHTML = '';
-                const categories = getUniqueCategories(jobs);
+            function renderPaginationControls(totalJobs) {
+                const paginationContainer = document.getElementById('pagination-controls-container');
+                if (!paginationContainer) return;
 
-                categories.forEach((category, index) => {
-                    const button = document.createElement('button');
-                    button.className = `tab-button ${index === 0 ? 'active' : ''}`;
-                    button.dataset.category = category;
-                    button.textContent = category;
-                    mainTabsContainer.appendChild(button);
+                const totalPages = Math.ceil(totalJobs / jobsPerPage);
+                if (totalPages <= 1) {
+                    paginationContainer.innerHTML = '';
+                    return;
+                }
 
-                    button.addEventListener('click', () => {
-                        document.querySelectorAll('.main-tabs .tab-button').forEach(btn => btn.classList.remove('active'));
-                        document.querySelectorAll('main .category-content').forEach(content => content.classList.remove('active'));
-                        button.classList.add('active');
-                        const targetContentId = `content-${category.replace(/[^a-zA-Z0-9]/g, '-')}`;
-                        document.getElementById(targetContentId).classList.add('active');
-                        renderJobTable(category, `tableView-${category.replace(/[^a-zA-Z0-9]/g, '-')}`);
+                let paginationHTML = `
+                    <button class="pagination-button ${currentPage === 1 ? 'disabled' : ''}" data-page="${currentPage - 1}">‹</button>
+                `;
+
+                const maxPageButtons = 3;
+                let startPage = Math.max(1, currentPage - 1);
+                let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+
+                if (endPage - startPage + 1 < maxPageButtons && startPage > 1) {
+                    startPage = Math.max(1, endPage - maxPageButtons + 1);
+                }
+                
+                if (startPage > 1) {
+                    paginationHTML += `<button class="pagination-button" data-page="1">1</button>`;
+                    if (startPage > 2) {
+                       paginationHTML += `<span class="px-2">...</span>`;
+                    }
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    paginationHTML += `
+                        <button class="pagination-button ${currentPage === i ? 'active' : ''}" data-page="${i}">${i}</button>
+                    `;
+                }
+
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        paginationHTML += `<span class="px-2">...</span>`;
+                    }
+                    paginationHTML += `<button class="pagination-button" data-page="${totalPages}">${totalPages}</button>`;
+                }
+
+                paginationHTML += `
+                    <button class="pagination-button ${currentPage === totalPages ? 'disabled' : ''}" data-page="${currentPage + 1}">›</button>
+                `;
+                paginationContainer.innerHTML = paginationHTML;
+
+                paginationContainer.querySelectorAll('.pagination-button').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        if (button.classList.contains('disabled')) return;
+                        currentPage = parseInt(button.dataset.page);
+                        renderJobBoard();
                     });
                 });
             }
-
-            function renderCategoryContentAreas(jobs) {
-                const mainContentArea = document.querySelector('main');
-                mainContentArea.innerHTML = '';
-                const categories = getUniqueCategories(jobs);
-
-                categories.forEach(category => {
-                    const categoryContentDiv = document.createElement('div');
-                    categoryContentDiv.id = `content-${category.replace(/[^a-zA-Z0-9]/g, '-')}`;
-                    categoryContentDiv.className = `category-content ${category === 'All' ? 'active' : ''}`;
-                    categoryContentDiv.innerHTML = `<div id="tableView-${category.replace(/[^a-zA-Z0-9]/g, '-')}" class="sub-tab-content active overflow-x-auto rounded-lg"></div>`;
-                    mainContentArea.appendChild(categoryContentDiv);
-                });
-            }
             
-            // Main function to fetch and render jobs
             async function fetchAndRenderJobs() {
                 const apiEndpoint = 'https://thedejabrew.com/wp-json/wp/v2/job';
-                const mainContentArea = document.querySelector('main');
+                const loadingMsg = document.getElementById('loading-message');
+                const container = document.getElementById('job-board-container');
                 
                 try {
                     const response = await axios.get(apiEndpoint);
                     
-                    // Transform API data to a more usable format
                     allJobsData = response.data.map(job => {
-                        // A simple function to format the ACF date '20250709' to '09/07/2025'
                         const formatDate = (dateStr) => {
                             if (!dateStr || dateStr.length !== 8) return 'N/A';
                             const year = dateStr.substring(0, 4);
@@ -482,37 +494,22 @@
                             company: job.acf.company || 'N/A',
                             location: job.acf.location || 'N/A',
                             experience: job.acf.experience || 'N/A',
-                            // Skills might be a comma-separated string, so we split it into an array
                             skills: job.acf.skills ? job.acf.skills.split(',').map(s => s.trim()) : [],
                             date: formatDate(job.acf.date_posted),
-                            // Assuming 'type' from the API can be used as a category. Adjust if needed.
-                            category: job.type || 'General', 
-                            type: job.type || 'Job'
+                            category: job.acf.category || 'General', 
                         };
                     });
-
-                    if (allJobsData.length > 0) {
-                        renderMainTabs(allJobsData);
-                        renderCategoryContentAreas(allJobsData);
-                        // Trigger a click on the 'All' tab to render the initial table view
-                        document.querySelector('.main-tabs .tab-button[data-category="All"]').click();
-                    } else {
-                       mainContentArea.innerHTML = '<p class="text-center">No job listings found.</p>'; 
-                       document.querySelector('.main-tabs').innerHTML = '';
-                    }
+                    
+                    if (loadingMsg) loadingMsg.style.display = 'none';
+                    renderJobBoard();
 
                 } catch (error) {
                     console.error('Error fetching job data:', error);
-                    mainContentArea.innerHTML = `<p class="text-center text-red-400">Failed to load job listings. Please try again later.</p>`;
-                    document.querySelector('.main-tabs').innerHTML = '';
-                } finally {
-                    // Hide the initial loading message
-                    const loadingMsg = document.getElementById('loading-message');
                     if (loadingMsg) loadingMsg.style.display = 'none';
+                    container.innerHTML = `<p class="text-center text-red-500">Failed to load job listings. Please try again later.</p>`;
                 }
             }
 
-            // Initial load
             fetchAndRenderJobs();
         });
     </script>
